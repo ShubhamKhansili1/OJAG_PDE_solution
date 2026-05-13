@@ -50,7 +50,7 @@ function [e, t, x]=OJAG_solveParabolicPDE_constant(N, M, T, a, kappa, K, sigma, 
     A(N+1, N) = sigma / dx;
     A(N+1, N+1) = -sigma / dx - (kappa + K);
     
-    % The control i.e the linear connection is stored in the B matrix_linear
+    % The control i.e the constant connection is stored in C
       C = OJAG_Constant_approximation_matrix(N, num_leaders);
       gamma_vec = gamma(x); % Size (N+1, 1)
       F=@(t,gamma,e) f(t,gamma+e)-f(t,gamma); 

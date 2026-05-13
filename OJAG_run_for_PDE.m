@@ -1,10 +1,10 @@
 % Parameters
-N = 42; % Number of spatial divisions
+N = 40; % Number of spatial divisions
 num_leaders = 7; % Number of leaders
 M = 1000; % Number of time divisions
 T = 4; % Total time
-a = 0.001; % Diffusion coefficient
-kappa = 2; % Coefficient in boundary condition
+a = 0.004; % Diffusion coefficient
+kappa =1; % Coefficient in boundary condition
 K = 1.4; % Coefficient in boundary condition
 sigma = 6; % Coefficient in boundary condition
 gamma = @(x) 1.5*sin(x);
@@ -15,10 +15,14 @@ f = @(t, z) 0.3*z;
 [e_C, t2, x2] = OJAG_solveParabolicPDE_constant(N, M, T, a, kappa, K, sigma, gamma, f, num_leaders); % wentzell + no communication
 
 [e_C13, t213, x213] = OJAG_solveParabolicPDE_constant(N, M, T, a, kappa, K, sigma, gamma, f, 13);
+[e_C12, t212, x212] = OJAG_solveParabolicPDE_constant(N, M, T, a, kappa, K, sigma, gamma, f, 12);
 
 
 [e_L1, t11, x11] = OJAG_solveParabolicPDE(N, M, T, a, kappa, K, 0, gamma, f, num_leaders); % Dirichlet + communication
 [e_C1, t22, x22] = OJAG_solveParabolicPDE_constant(N, M, T, a, kappa, K, 0, gamma, f, num_leaders); % Dirichlet + no communication
+
+
+
 
 
 dx = 1 / N; % Spatial step
@@ -34,6 +38,7 @@ L2_norm_sq_L1 = sum(e_L1.^2, 1) * dx; % Linear control
 L2_norm_sq_C1 = sum(e_C1.^2, 1) * dx; % Constant control
 
 L2_norm_sq_C13 = sum(e_C13.^2, 1) * dx; % Constant control for 13 leaders
+L2_norm_sq_C12 = sum(e_C12.^2, 1) * dx; % Constant control for 12 leaders
 
 % Compute log of squared L2 norm for Wentzell
 log_L2_norm_sq_L = log(L2_norm_sq_L); % Log of L2 norm squared for linear control
@@ -44,6 +49,7 @@ log_L2_norm_sq_L1 = log(L2_norm_sq_L1); % Log of L2 norm squared for linear cont
 log_L2_norm_sq_C1 = log(L2_norm_sq_C1); % Log of L2 norm squared for constant control
 
 log_L2_norm_sq_C13 = log(L2_norm_sq_C13);
+log_L2_norm_sq_C12 = log(L2_norm_sq_C12);
 
 %% Figure 1: Plot showing log of squared L2 norm versus time with focus on 
 % comparing Dirichlet and Wentzell BCs.
@@ -73,6 +79,9 @@ grid on;
     plot(t2, log_L2_norm_sq_C, 'Color', 'blue', 'LineWidth', 3, 'DisplayName', 'Non-communicating 7 leaders');
     hold on;
     plot(t213, log_L2_norm_sq_C13, 'Color', 'green','LineStyle', '--', 'LineWidth', 3, 'DisplayName', 'Non-communicating 13 leaders');
+    hold on;
+    plot(t213, log_L2_norm_sq_C12, 'Color', 'red','LineStyle', '--', 'LineWidth', 3, 'DisplayName', 'Non-communicating 12 leaders');
+   
    
 
     xlabel('$$ t $$', 'Interpreter', 'latex');
@@ -85,12 +94,12 @@ grid on;
 % For s1 sigma = 0.01
 [e_Ls1, t1s1, x1s1] = OJAG_solveParabolicPDE(N, M, T, a, kappa, K, 0.01, gamma, f, num_leaders); % Wentzell + communication
 [e_Cs1, t2s1, x2s1] = OJAG_solveParabolicPDE_constant(N, M, T, a, kappa, K, 0.01, gamma, f, num_leaders); % wentzell + no communication
-% For s2 sigma = 4
+% For s2 sigma = 0.5
 [e_Ls2, t1s2, x1s2] = OJAG_solveParabolicPDE(N, M, T, a, kappa, K, 0.5, gamma, f, num_leaders); % Wentzell + communication
 [e_Cs2, t2s2, x2s2] = OJAG_solveParabolicPDE_constant(N, M, T, a, kappa, K, 0.5, gamma, f, num_leaders); % wentzell + no communication
-% For s3 sigma = 8
-[e_Ls3, t1s3, x1s3] = OJAG_solveParabolicPDE(N, M, T, a, kappa, K, 8, gamma, f, num_leaders); % Wentzell + communication
-[e_Cs3, t2s3, x2s3] = OJAG_solveParabolicPDE_constant(N, M, T, a, kappa, K, 8, gamma, f, num_leaders); % wentzell + no communication
+% For s3 sigma = 1
+[e_Ls3, t1s3, x1s3] = OJAG_solveParabolicPDE(N, M, T, a, kappa, K, 1, gamma, f, num_leaders); % Wentzell + communication
+[e_Cs3, t2s3, x2s3] = OJAG_solveParabolicPDE_constant(N, M, T, a, kappa, K, 1, gamma, f, num_leaders); % wentzell + no communication
 
 % Compute L2 norm squared for linear and constant control for Wentzell
 L2_norm_sq_Ls1 = sum(e_Ls1.^2, 1) * dx; % Linear control
@@ -119,20 +128,20 @@ figure;
 % Communicating (sigma = 0.01)
 plot(t1s1, log_L2_norm_sq_Ls1, 'Color', [1, 0.5, 0], 'LineWidth', 1);  
 hold on;
-% Communicating (sigma = 4)
+% Communicating (sigma = 0.5)
 plot(t1s2, log_L2_norm_sq_Ls2, 'Color', 'red', 'LineWidth', 1); 
 hold on;
-% Communicating (sigma = 8)
+% Communicating (sigma = 1)
 plot(t1s3, log_L2_norm_sq_Ls3, 'Color', 'green', 'LineWidth', 1);
 hold on;
 
 % Non-Communicating (sigma = 0.01)
 plot(t2s1, log_L2_norm_sq_Cs1, 'Color', [1, 0.5, 0], 'LineStyle', '--', 'LineWidth', 4); 
 hold on;
-% Non-Communicating (sigma = 4)
+% Non-Communicating (sigma = 0.5)
 plot(t2s2, log_L2_norm_sq_Cs2, 'Color', 'red', 'LineStyle', '--', 'LineWidth', 4); 
 hold on;
-% Non-Communicating (sigma = 8)
+% Non-Communicating (sigma = 1)
 plot(t2s3, log_L2_norm_sq_Cs3, 'Color', 'green', 'LineStyle', '--', 'LineWidth', 4); 
 
 % Axis labels and title
@@ -141,8 +150,8 @@ ylabel('$$\log\left(\|e(t, \cdot)\|^2\right)$$', 'Interpreter', 'latex');
 title('Effect of $$\sigma$$ on the system', 'Interpreter', 'latex');
 
 % Legend customization
-legend({'Communicating, \sigma = 0.01', 'Communicating, \sigma = 0.5', 'Communicating, \sigma = 8',...
-    'Non-communicating, \sigma = 0.01', 'Non-communicating, \sigma = 0.5', 'Non-communicating, \sigma = 8'}, ...
+legend({'Communicating, \sigma = 0.01', 'Communicating, \sigma = 0.5', 'Communicating, \sigma = 1',...
+    'Non-communicating, \sigma = 0.01', 'Non-communicating, \sigma = 0.5', 'Non-communicating, \sigma = 1'}, ...
     'Location', 'best', 'FontSize', 28, 'NumColumns', 2);
 grid on;
 
@@ -248,7 +257,6 @@ view(3);
     legend('show');
     grid on;
 
-
-
+%% Plot log(\|e(t, \cdot\|^2)) versus t comparing wentzell and dirichlet but for different a values.
 
 
